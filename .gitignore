@@ -1,0 +1,7 @@
+Makefile
+Makefile.old
+MYMETA.*
+/blib
+pm_to_blib
+/Mojolicious-Plugin-LocalUI*
+.build/*
