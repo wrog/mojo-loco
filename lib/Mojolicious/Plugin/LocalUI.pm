@@ -1,4 +1,5 @@
 package Mojolicious::Plugin::LocalUI;
+# ABSTRACT: launch a dedicated local web browser UI window
 
 use Mojo::Base 'Mojolicious::Plugin';
 
@@ -143,59 +144,7 @@ sub _reset_timer {
 
 1;
 
-__DATA__
-
-@@ layouts/done.html.ep
-<!DOCTYPE html>
-<html>
-  <head><title><%= title %></title>
-%= stylesheet begin
-body { background-color: #ddd; font-family: helvetica; }
-h1 { font-size: 40px; color: white }
-% end
-  </head>
-  <body><%= content %></body>
-</html>
-
-@@ done.html.ep
-% layout 'done';
-% title $title;
-<h1 id="header"><%= $header %></h1>
-<h2><span id="status"></span> <span id="message"></span></h2>
-<p id="info"></p>
-
-@@ ready.js.ep
-$.ready.then(function() {
-    $().heartbeat()
-%== $_cb ? $_cb->() : ''
-% unless ($nofinish) {
-    .on_finish(function(unexpected,o) {
-% my ($hd,$bdy) = do {
-%   my $d = Mojo::DOM->new($c->render_to_string(template => "done", format => "html", title => "Finished", header => "Close this window"));
-%   map {"'" . (Mojo::Util::trim($d->at($_)->content)
-%                =~ s/'/\\047/gr =~ s/\n/'\n    +'\\n/gr) . "'"} qw(head body)
-% };
-      $('head').html(<%== $hd %>);
-      $('body').html(<%== $bdy %>);
-      if (unexpected) {
-        $('#header').html('Error');
-        $('#status').html(o.code);
-        $('#message').html(o.msg);
-        $('#info').html(o.status == 'error' ? '' : "("+o.msg+")");
-      }
-    })
-% }
-    .start();
-});
-
-
-__END__
-
 =encoding utf8
-
-=head1 NAME
-
-Mojolicious::Plugin::LocalUI - launch a dedicated local web browser UI window
 
 =head1 SYNOPSIS
 
@@ -296,3 +245,47 @@ Register plugin in L<Mojolicious> application.
 L<Mojolicious>, L<Mojolicious::Guides>, L<https://mojolicious.org>.
 
 =cut
+__DATA__
+
+@@ layouts/done.html.ep
+<!DOCTYPE html>
+<html>
+  <head><title><%= title %></title>
+%= stylesheet begin
+body { background-color: #ddd; font-family: helvetica; }
+h1 { font-size: 40px; color: white }
+% end
+  </head>
+  <body><%= content %></body>
+</html>
+
+@@ done.html.ep
+% layout 'done';
+% title $title;
+<h1 id="header"><%= $header %></h1>
+<h2><span id="status"></span> <span id="message"></span></h2>
+<p id="info"></p>
+
+@@ ready.js.ep
+$.ready.then(function() {
+    $().heartbeat()
+%== $_cb ? $_cb->() : ''
+% unless ($nofinish) {
+    .on_finish(function(unexpected,o) {
+% my ($hd,$bdy) = do {
+%   my $d = Mojo::DOM->new($c->render_to_string(template => "done", format => "html", title => "Finished", header => "Close this window"));
+%   map {"'" . (Mojo::Util::trim($d->at($_)->content)
+%                =~ s/'/\\047/gr =~ s/\n/'\n    +'\\n/gr) . "'"} qw(head body)
+% };
+      $('head').html(<%== $hd %>);
+      $('body').html(<%== $bdy %>);
+      if (unexpected) {
+        $('#header').html('Error');
+        $('#status').html(o.code);
+        $('#message').html(o.msg);
+        $('#info').html(o.status == 'error' ? '' : "("+o.msg+")");
+      }
+    })
+% }
+    .start();
+});
