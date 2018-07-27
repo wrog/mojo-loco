@@ -20,7 +20,7 @@ sub _stack {
 }
 # push @MyTest::browser_open_cb, sub { push @stacks, [$_[0], _stack()] };
 
-plugin 'LocalUI';
+plugin 'Loco';
 
 get '/' => sub {
   my $c = shift;

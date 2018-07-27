@@ -1,5 +1,5 @@
-package Mojolicious::Plugin::LocalUI;
-# ABSTRACT: launch a dedicated local web browser UI window
+package Mojolicious::Plugin::Loco;
+# ABSTRACT: launch local GUI via default web browser
 
 use Mojo::Base 'Mojolicious::Plugin';
 
@@ -23,7 +23,7 @@ sub register {
       = map {$api->merge($_)->to_string} 
       qw(init hb heartbeat.js);
 
-    $app->helper( 'localui.conf' => sub { \%conf });
+    $app->helper( 'loco.conf' => sub { \%conf });
     $app->hook(
 	before_server_start => sub {
 	    my ($server, $app) = @_;
@@ -99,7 +99,7 @@ print STDERR "bad csrf: ".$c->validation->input->{csrf_token}." vs ".$c->validat
     push @{$app->renderer->classes}, __PACKAGE__;
     
     $app->helper(
-	'localui.jsload' => sub { 
+	'loco.jsload' => sub { 
 	    my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 	    my ($c, %option) = @_; 
 	    my $csrf = $c->param('csrf_token')//'missing';
@@ -150,30 +150,31 @@ sub _reset_timer {
 
   # Mojolicious::Lite
 
-  plugin 'LocalUI';
+  plugin 'Loco';
 
   get '/' => "index";
-  #.. and whatever else
-
+  #...
   app->start;
+
   __DATA__
 
   @@ index.html.ep
   % layout 'default';
-  ...
+  #...
 
   @@ layouts/default.html.ep
   <!DOCTYPE html>
-  <html>
-    <head> ...
-  %= $c->localui->jsload;
-    </head>
-    <body><%= content %></body>
-  </html>
+  <html><head>
+
+  %= $c->loco->jsload;
+
+  </head><body>
+  %= content
+  </body></html>
 
 =head1 DESCRIPTION
 
-On server start, L<Mojolicious::Plugin::LocalUI> opens a dedicated window in your default internet browser.  This assumes an available desktop that L<Browser::Open> knows how to deal with.  The application must be listening on a loopback/localhost port (dies otherwise), and the server shuts down when the browser window (and descendants thereof) is subsequently closed.
+On server start, L<Mojolicious::Plugin::Loco> opens a dedicated window in your default internet browser.  This assumes an available desktop that L<Browser::Open> knows how to deal with.  The application must be listening on a loopback/localhost port (dies otherwise), and the server shuts down when the browser window (and descendants thereof) is subsequently closed.
 
 This is a way to create low-effort desktop applications using L<Mojolicious> (cross-platform if your code is sufficiently portable).
 
@@ -199,16 +200,16 @@ Path prefix for URIs used by this plugin.  This is where the various endpoints n
 
 =head1 HELPERS
 
-=head2 localui.jsload
+=head2 loco.jsload
 
 Loads whatever javascript needs to be in the <head> section of every page to be displayed in the browser window.  You most likely want this in your default layout.
 
-  %= $c->localui->jsload;
+  %= $c->loco->jsload;
 
 Or you can be more elaborate
 
   %= javascript 'https://code.jquery.com/jquery-3.3.1.min.js';
-  %= $c->localui->jsload( nojquery => 1, begin
+  %= $c->loco->jsload( nojquery => 1, begin
         .on_hb(function(h) {
           // do something on every heartbeat
 	  $('#heartbeat').html(h);
@@ -231,7 +232,7 @@ Final C<begin> block, if provided, will be assumed to be javascript code to furt
 
 =head1 METHODS
 
-L<Mojolicious::Plugin::LocalUI> inherits all methods from
+L<Mojolicious::Plugin::Loco> inherits all methods from
 L<Mojolicious::Plugin> and implements the following new ones.
 
 =head2 register

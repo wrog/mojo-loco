@@ -1,6 +1,6 @@
 # NAME
 
-Mojolicious::Plugin::LocalUI - launch a dedicated local web browser UI window
+Mojolicious::Plugin::Loco - launch a local UI window using the default web browser
 
 # VERSION
 
@@ -11,31 +11,32 @@ version 0.001
 ```perl
 # Mojolicious::Lite
 
-plugin 'LocalUI';
+plugin 'Loco';
 
 get '/' => "index";
-#.. and whatever else
-
+#...
 app->start;
+
 __DATA__
 
 @@ index.html.ep
 % layout 'default';
-...
+#...
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
-<html>
-  <head> ...
-%= $c->localui->jsload;
-  </head>
-  <body><%= content %></body>
-</html>
+<html><head>
+
+%= $c->loco->jsload;
+
+</head><body>
+%= content
+</body></html>
 ```
 
 # DESCRIPTION
 
-On server start, [Mojolicious::Plugin::LocalUI](https://metacpan.org/pod/Mojolicious::Plugin::LocalUI) opens a dedicated window in your default internet browser.  This assumes an available desktop that [Browser::Open](https://metacpan.org/pod/Browser::Open) knows how to deal with.  The application must be listening on a loopback/localhost port (dies otherwise), and the server shuts down when the browser window (and descendants thereof) is subsequently closed.
+On server start, [Mojolicious::Plugin::Loco](https://metacpan.org/pod/Mojolicious::Plugin::Loco) opens a dedicated window in your default internet browser.  This assumes an available desktop that [Browser::Open](https://metacpan.org/pod/Browser::Open) knows how to deal with.  The application must be listening on a loopback/localhost port (dies otherwise), and the server shuts down when the browser window (and descendants thereof) is subsequently closed.
 
 This is a way to create low-effort desktop applications using [Mojolicious](https://metacpan.org/pod/Mojolicious) (cross-platform if your code is sufficiently portable).
 
@@ -61,19 +62,19 @@ Path prefix for URIs used by this plugin.  This is where the various endpoints n
 
 # HELPERS
 
-## localui.jsload
+## loco.jsload
 
 Loads whatever javascript needs to be in the &lt;head> section of every page to be displayed in the browser window.  You most likely want this in your default layout.
 
 ```
-%= $c->localui->jsload;
+%= $c->loco->jsload;
 ```
 
 Or you can be more elaborate
 
 ```perl
 %= javascript 'https://code.jquery.com/jquery-3.3.1.min.js';
-%= $c->localui->jsload( nojquery => 1, begin
+%= $c->loco->jsload( nojquery => 1, begin
       .on_hb(function(h) {
         // do something on every heartbeat
         $('#heartbeat').html(h);
@@ -97,7 +98,7 @@ Final `begin` block, if provided, will be assumed to be javascript code to furth
 
 # METHODS
 
-[Mojolicious::Plugin::LocalUI](https://metacpan.org/pod/Mojolicious::Plugin::LocalUI) inherits all methods from
+[Mojolicious::Plugin::Loco](https://metacpan.org/pod/Mojolicious::Plugin::Loco) inherits all methods from
 [Mojolicious::Plugin](https://metacpan.org/pod/Mojolicious::Plugin) and implements the following new ones.
 
 ## register
