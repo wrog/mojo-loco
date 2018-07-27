@@ -1,6 +1,6 @@
 # NAME
 
-Mojolicious::Plugin::Loco - launch a local UI window using the default web browser
+Mojolicious::Plugin::Loco - launch local GUI via default web browser
 
 # VERSION
 

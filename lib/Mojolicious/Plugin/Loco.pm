@@ -1,4 +1,5 @@
 package Mojolicious::Plugin::Loco;
+
 # ABSTRACT: launch local GUI via default web browser
 
 use Mojo::Base 'Mojolicious::Plugin';
@@ -11,80 +12,87 @@ use Mojo::Util qw(hmac_sha1_sum steady_time);
 sub register {
     my ($self, $app, $o) = @_;
     my %conf = (
-	entry_path => '/',
-	initial_wait => 10,
-	final_wait => 3,
-	api_prefix => '/hb/',
-	%$o
-       );
-    my $api = Mojo::Path->new($conf{api_prefix})
-      ->leading_slash(1)->trailing_slash(1);
-    my ($init_path, $hb_path, $js_path)
-      = map {$api->merge($_)->to_string} 
-      qw(init hb heartbeat.js);
+        entry_path   => '/',
+        initial_wait => 10,
+        final_wait   => 3,
+        api_prefix   => '/hb/',
+        %$o
+    );
+    my $api =
+      Mojo::Path->new($conf{api_prefix})->leading_slash(1)->trailing_slash(1);
+    my ($init_path, $hb_path, $js_path) =
+      map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
-    $app->helper( 'loco.conf' => sub { \%conf });
+    $app->helper('loco.conf' => sub { \%conf });
     $app->hook(
-	before_server_start => sub {
-	    my ($server, $app) = @_;
-	    return if $conf{browser_launched};
-	    ++$conf{browser_launched};
-	    return if (caller(7))[0] =~ m/Command::get$/;
-	    my ($url) = 
-	      map { 
-		  $_->host($_->host =~ s![*]!localhost!r); 
-	      }
-	      grep {
-		  $_->host =~ m/^(?:[*]|localhost|127[.]([0-9.]+))$/
-	      }
-	      map { Mojo::URL->new($_) }
-	      @{$server->listen};
-	    die "Must be listening at a loopback URI" unless $url;
+        before_server_start => sub {
+            my ($server, $app) = @_;
+            return if $conf{browser_launched};
+            ++$conf{browser_launched};
+            return if (caller(7))[0] =~ m/Command::get$/;
+            my ($url) =
+              map  { $_->host($_->host =~ s![*]!localhost!r); }
+              grep { $_->host =~ m/^(?:[*]|localhost|127[.]([0-9.]+))$/ }
+              map  { Mojo::URL->new($_) } @{ $server->listen };
+            die "Must be listening at a loopback URI" unless $url;
 
-	    $conf{seed} =
-	      my $seed = _make_csrf($app, $$ . steady_time . rand . 'x');
+            $conf{seed} = my $seed =
+              _make_csrf($app, $$ . steady_time . rand . 'x');
 
-	    $url->path($init_path)->query(s => $seed);
-	    my $e = open_browser($url->to_string);
-	    if ($e // 1) {
-		unless ($e) {
-		    die "Cannot find browser to execute";
-		}
-		else {
-		    die "Error executing: ". Browser::Open::open_browser_cmd . "\n";
-		}
-	    }
-	    _reset_timer($conf{initial_wait});
-	});
+            $url->path($init_path)->query(s => $seed);
+            my $e = open_browser($url->to_string);
+            if ($e // 1) {
+                unless ($e) {
+                    die "Cannot find browser to execute";
+                }
+                else {
+                    die "Error executing: "
+                      . Browser::Open::open_browser_cmd . "\n";
+                }
+            }
+            _reset_timer($conf{initial_wait});
+        }
+    );
     $app->routes->get(
-	$init_path => sub {
-	    my $c = shift;
-	    my $seed = $c->param('s')//'' =~ s/[^0-9a-f]//gr;
+        $init_path => sub {
+            my $c    = shift;
+            my $seed = $c->param('s') // '' =~ s/[^0-9a-f]//gr;
 
-	    my $u = Mojo::URL->new($conf{entry_path});
-	    if (length($seed) >= 40
-		  && $seed eq ($conf{seed}//'')) {
-		delete $conf{seed};
-		undef $c->session->{csrf_token}; # make sure we get a fresh one
-		$conf{csrf} = my $csrf = $c->csrf_token;
-		$u->query(csrf_token => $csrf);
-	    }
-	    $c->redirect_to($u);
-	});
+            my $u = Mojo::URL->new($conf{entry_path});
+            if (length($seed) >= 40
+                && $seed eq ($conf{seed} // ''))
+            {
+                delete $conf{seed};
+                undef $c->session->{csrf_token};  # make sure we get a fresh one
+                $conf{csrf} = my $csrf = $c->csrf_token;
+                $u->query(csrf_token => $csrf);
+            }
+            $c->redirect_to($u);
+        }
+    );
     $app->routes->get(
-	$hb_path => sub {
-	    my $c = shift;
-	    state $hcount = 0;
-	    if ($c->validation->csrf_protect->error('csrf_token')) {
-print STDERR "bad csrf: ".$c->validation->input->{csrf_token}." vs ".$c->validation->csrf_token."\n";
-		return $c->render(json => { error => 'unexpected origin' },
-				  status => 400, message => 'Bad Request', info => 'unexpected origin');
-	    }
-	    _reset_timer($conf{final_wait});
-	    $c->render(json => { h => ++$hcount });
-	    #    return $c->helpers->reply->not_found()
-	    #      if ($hcount > 5);
-	});
+        $hb_path => sub {
+            my $c = shift;
+            state $hcount = 0;
+            if ($c->validation->csrf_protect->error('csrf_token')) {
+                print STDERR "bad csrf: "
+                  . $c->validation->input->{csrf_token} . " vs "
+                  . $c->validation->csrf_token . "\n";
+                return $c->render(
+                    json    => { error => 'unexpected origin' },
+                    status  => 400,
+                    message => 'Bad Request',
+                    info    => 'unexpected origin'
+                );
+            }
+            _reset_timer($conf{final_wait});
+            $c->render(json => { h => ++$hcount });
+
+            #    return $c->helpers->reply->not_found()
+            #      if ($hcount > 5);
+        }
+    );
+
     # $app->hook(
     # 	before_dispatch => sub {
     # 	    my $c = shift;
@@ -93,27 +101,40 @@ print STDERR "bad csrf: ".$c->validation->input->{csrf_token}." vs ".$c->validat
     # 	      if $c->validation->csrf_protect->error('csrf_token');
     # 	});
 
-    $app->static->extra->{$js_path =~ s!^/!!r} = 
+    $app->static->extra->{ $js_path =~ s!^/!!r } =
       dist_file(__PACKAGE__ =~ s/::/-/gr, 'heartbeat.js');
 
-    push @{$app->renderer->classes}, __PACKAGE__;
-    
+    push @{ $app->renderer->classes }, __PACKAGE__;
+
     $app->helper(
-	'loco.jsload' => sub { 
-	    my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-	    my ($c, %option) = @_; 
-	    my $csrf = $c->param('csrf_token')//'missing';
-	    b(( join "", map { $c->javascript($_)."\n" }
-		($option{nojquery} ? () : ('/mojo/jquery/jquery.js')),
-		$js_path 
-	       ) .
-	       $c->javascript( sub { <<END 
+        'loco.jsload' => sub {
+            my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
+            my ($c, %option) = @_;
+            my $csrf = $c->param('csrf_token') // 'missing';
+            b(
+                (
+                    join "",
+                    map { $c->javascript($_) . "\n" }
+                      ($option{nojquery} ? () : ('/mojo/jquery/jquery.js')),
+                    $js_path
+                )
+                . $c->javascript(
+                    sub {
+                        <<END
 \$.fn.heartbeat.defaults.ajax.url = '$hb_path';
 \$.fn.heartbeat.defaults.ajax.headers['X-CSRF-Token'] = '$csrf';
 END
- . $c->include('ready', format => 'js', nofinish => 0, %option, _cb => $cb);
-}))
-	});
+                          . $c->include(
+                            'ready',
+                            format   => 'js',
+                            nofinish => 0,
+                            %option, _cb => $cb
+                          );
+                    }
+                )
+            );
+        }
+    );
 
     # $app->helper(
     # 	'reply.bad_request', sub {
@@ -126,7 +147,7 @@ END
 
 sub _make_csrf {
     my ($app, $seed) = @_;
-    hmac_sha1_sum(pack('h*',$seed), $app->secrets->[0]);
+    hmac_sha1_sum(pack('h*', $seed), $app->secrets->[0]);
 }
 
 sub _reset_timer {
@@ -134,13 +155,15 @@ sub _reset_timer {
     state $timer;
     $hb_wait = shift if @_;
     Mojo::IOLoop->remove($timer)
-	if defined $timer;
-    $timer = Mojo::IOLoop->timer($hb_wait, sub { 
-				     print STDERR "stopping...";
-				     shift->stop;
-				 });
+      if defined $timer;
+    $timer = Mojo::IOLoop->timer(
+        $hb_wait,
+        sub {
+            print STDERR "stopping...";
+            shift->stop;
+        }
+    );
 }
-
 
 1;
 
@@ -246,6 +269,7 @@ Register plugin in L<Mojolicious> application.
 L<Mojolicious>, L<Mojolicious::Guides>, L<https://mojolicious.org>.
 
 =cut
+
 __DATA__
 
 @@ layouts/done.html.ep
