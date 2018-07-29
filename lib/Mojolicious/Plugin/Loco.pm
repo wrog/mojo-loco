@@ -29,12 +29,15 @@ sub register {
             my ($server, $app) = @_;
             return if $conf{browser_launched};
             ++$conf{browser_launched};
-            return if (caller(7))[0] =~ m/Command::get$/;
             my ($url) =
               map  { $_->host($_->host =~ s![*]!localhost!r); }
               grep { $_->host =~ m/^(?:[*]|localhost|127[.]([0-9.]+))$/ }
               map  { Mojo::URL->new($_) } @{ $server->listen };
             die "Must be listening at a loopback URI" unless $url;
+
+            # no explicit port means this is coming from UserAgent
+            return
+              unless ($url->port);
 
             $conf{seed} = my $seed =
               _make_csrf($app, $$ . steady_time . rand . 'x');
