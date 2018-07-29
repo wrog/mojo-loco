@@ -3,10 +3,6 @@
 
 Mojolicious::Plugin::Loco - launch local GUI via default web browser
 
-=head1 VERSION
-
-version 0.001
-
 =head1 SYNOPSIS
 
   # myapp.pl
