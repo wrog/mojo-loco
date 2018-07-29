@@ -12,14 +12,14 @@ use Mojo::Util qw(hmac_sha1_sum steady_time);
 sub register {
     my ($self, $app, $o) = @_;
     my %conf = (
-        entry_path   => '/',
+        entry        => '/',
         initial_wait => 10,
         final_wait   => 3,
-        api_prefix   => '/hb/',
+        api_path     => '/hb/',
         %$o
     );
     my $api =
-      Mojo::Path->new($conf{api_prefix})->leading_slash(1)->trailing_slash(1);
+      Mojo::Path->new($conf{api_path})->leading_slash(1)->trailing_slash(1);
     my ($init_path, $hb_path, $js_path) =
       map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
@@ -58,7 +58,7 @@ sub register {
             my $c    = shift;
             my $seed = $c->param('s') // '' =~ s/[^0-9a-f]//gr;
 
-            my $u = Mojo::URL->new($conf{entry_path});
+            my $u = Mojo::URL->new($conf{entry});
             if (length($seed) >= 40
                 && $seed eq ($conf{seed} // ''))
             {
