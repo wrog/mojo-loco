@@ -66,9 +66,10 @@ sub register {
                 && $seed eq ($conf{seed} // ''))
             {
                 delete $conf{seed};
-                undef $c->session->{csrf_token};  # make sure we get a fresh one
+
+                # make sure we get a fresh one
+                undef $c->session->{csrf_token};
                 $conf{csrf} = my $csrf = $c->csrf_token;
-                $u->query(csrf_token => $csrf);
             }
             $c->redirect_to($u);
         }
@@ -77,7 +78,9 @@ sub register {
         $hb_path => sub {
             my $c = shift;
             state $hcount = 0;
-            if ($c->validation->csrf_protect->error('csrf_token')) {
+            if (   $c->validation->csrf_protect->error('csrf_token')
+                || $c->csrf_token ne $conf{csrf})
+            {
                 print STDERR "bad csrf: "
                   . $c->validation->input->{csrf_token} . " vs "
                   . $c->validation->csrf_token . "\n";
@@ -113,7 +116,7 @@ sub register {
         'loco.jsload' => sub {
             my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
             my ($c, %option) = @_;
-            my $csrf = $c->param('csrf_token') // 'missing';
+            my $csrf = $c->csrf_token;
             b(
                 (
                     join "",
