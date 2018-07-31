@@ -23,7 +23,28 @@ sub register {
     my ($init_path, $hb_path, $js_path) =
       map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
-    $app->helper('loco.conf' => sub { \%conf });
+    my %_settable = ();
+    ++$_settable{$_} for qw(final_wait);
+    $app->helper(
+        'loco.conf' => sub {
+            my $c = shift;
+
+            # Hash
+            return \%conf unless @_;
+
+            # Get
+            return $conf{ $_[0] } unless @_ > 1 || ref $_[0];
+
+            # Set
+            my $values = ref $_[0] ? $_[0] : {@_};
+            for (keys %$values) {
+                delete $values->{$_} unless $_settable{$_};
+            }
+            @conf{ keys %$values } = values %$values;
+            return $c;
+        }
+    );
+
     $app->hook(
         before_server_start => sub {
             my ($server, $app) = @_;
