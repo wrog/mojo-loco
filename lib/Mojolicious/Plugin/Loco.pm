@@ -64,6 +64,20 @@ sub register {
         }
     );
 
+    $app->helper(
+        'loco.quit' => sub {
+            my $c = shift;
+            return if $c->loco->csrf_fail;
+            $c->render(
+                template => "done",
+                format   => "html",
+                title    => "Finished",
+                header   => "Close this window"
+            ) unless $c->res->code;
+            Mojo::IOLoop->timer(1 => sub { shift->stop });
+        }
+    );
+
     $app->hook(
         before_server_start => sub {
             my ($server, $app) = @_;

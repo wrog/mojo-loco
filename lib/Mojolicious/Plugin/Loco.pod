@@ -77,6 +77,10 @@ Performs the C<csrf_token> validation; returns true and renders an an HTTP 400 r
 
   return if $c->loco->csrf_fail;
 
+=head2 loco->quit
+
+Stop the server and render a final page if necessary.  This includes the C<csrf_token> check.
+
 =head2 loco->jsload
 
 Loads whatever javascript needs to be in the <head> section of every page to be displayed in the browser window.  You most likely want this in your default layout.
