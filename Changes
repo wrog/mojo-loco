@@ -1,4 +1,11 @@
 {{$NEXT}}
 
+0.002     Jul 31 2018
+         * loco->jsload now takes 'jquery' option rather than 'nojquery'
+         * New config option: allow_other_browsers 
+         * New helpers: loco->quit, loco->csrf_fail
+         * Added SECURITY CONSIDERATIONS
+         * Fixed module packaging issues
+
 0.001     Jul 29 2018
          * Initial version
