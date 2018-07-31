@@ -62,7 +62,7 @@ Read L</"SECURITY CONSIDERATIONS"> if you think you might want to set this.
 
 =head1 HELPERS
 
-=head2 loco.conf
+=head2 loco->conf
 
 Get or set plugin configuration values.  Only some values are actually settable.
 
@@ -71,7 +71,7 @@ Get or set plugin configuration values.  Only some values are actually settable.
   $c->loco->conf(final_wait => 200)    # -> $c, sets final_wait
   $c->loco->conf({final_wait => 200})  # -> same
 
-=head2 loco.jsload
+=head2 loco->jsload
 
 Loads whatever javascript needs to be in the <head> section of every page to be displayed in the browser window.  You most likely want this in your default layout.
 
