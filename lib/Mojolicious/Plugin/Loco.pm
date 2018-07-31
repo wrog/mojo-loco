@@ -77,6 +77,15 @@ sub register {
             _reset_timer($conf{initial_wait});
         }
     );
+    $app->hook(
+        before_routes => sub {
+            my $c = shift;
+            $c->validation->csrf_token('')
+              if ($conf{seed}
+                || (($c->session->{csrf_token} // '') ne ($conf{csrf} // '')));
+        }
+    ) unless $conf{allow_other_browsers};
+
     $app->routes->get(
         $init_path => sub {
             my $c    = shift;
@@ -99,9 +108,7 @@ sub register {
         $hb_path => sub {
             my $c = shift;
             state $hcount = 0;
-            if (   $c->validation->csrf_protect->error('csrf_token')
-                || $c->csrf_token ne $conf{csrf})
-            {
+            if ($c->validation->csrf_protect->error('csrf_token')) {
                 print STDERR "bad csrf: "
                   . $c->validation->input->{csrf_token} . " vs "
                   . $c->validation->csrf_token . "\n";
