@@ -43,7 +43,9 @@ Mojolicious::Plugin::Loco - launch local GUI via default web browser
 
 This plugin allows writing low-effort desktop applications using L<Mojolicious> (even cross-platform ones if your code is sufficiently portable).
 
-When run as a daemon listening on an explicit loopback/localhost port, the plugin causes a dedicated window to open in your default internet browser, assuming we're in a desktop/window-manager context where L<Browser::Open> is meaningful.  The server will then shut down once the browser window and all descendants thereof are subsequently closed.
+When run as a daemon listening on an explicit loopback/localhost port, the plugin causes a dedicated window to open in your default internet browser, assuming that we're in a desktop/window-manager context where an internet browser application is installed.  The server will then shut down once the browser window and all descendants thereof are subsequently closed.
+
+This module is currently experimental; the API may change without notice.
 
 =head1 OPTIONS
 
