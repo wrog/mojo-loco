@@ -177,12 +177,13 @@ sub register {
         'loco.jsload' => sub {
             my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
             my ($c, %option) = @_;
-            my $csrf = $c->csrf_token;
+            my $csrf   = $c->csrf_token;
+            my $jquery = $option{jquery} // '/mojo/jquery/jquery.js';
             b(
                 (
                     join "",
                     map { $c->javascript($_) . "\n" }
-                      ($option{nojquery} ? () : ('/mojo/jquery/jquery.js')),
+                      (length($jquery) ? ($jquery) : ()),
                     $js_path
                 )
                 . $c->javascript(

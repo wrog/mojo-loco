@@ -104,19 +104,18 @@ Loads whatever javascript needs to be in the <head> section of every page to be 
 
 Or you can be more elaborate
 
-  %= javascript 'https://code.jquery.com/jquery-3.3.1.min.js';
-  %= $c->loco->jsload( nojquery => 1, begin
+  %= $c->loco->jsload( jquery => 'https://code.jquery.com/jquery-3.3.1.min.js', begin
         .on_hb(function(h) {
           // do something on every heartbeat
 	  $('#heartbeat').html(h);
         })
   % end );
 
-Options include
+Options for L</jsload> include
 
-=head3 nojquery
+=head3 jquery
 
-Suppress loading of jquery from the Mojolicious distribution, meaning you already loaded it from elsewhere (needs to be at least version 3.0).
+URL to be loading jquery from.  Default is to use the jquery version included in the Mojolicious distribution.  Specifying an empty string C<''> suppresses jquery loading entirely, if you have already loaded it as part of some other package.
 
 =head3 nofinish
 
