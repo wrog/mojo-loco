@@ -45,6 +45,25 @@ sub register {
         }
     );
 
+    $app->helper(
+        'loco.reply_400' => sub {
+            my $c       = shift;
+            my %options = (
+                info   => '',
+                status => $c->stash('status') // 400,
+                (@_ % 2 ? ('message') : (message => 'Bad Request')), @_
+            );
+            return $c->render(template => 'done', title => 'Error', %options);
+        }
+    );
+    $app->helper(
+        'loco.csrf_fail' => sub {
+            my $c = shift;
+            return $c->loco->reply_400(info => 'unexpected origin')
+              if $c->validation->csrf_protect->error('csrf_token');
+        }
+    );
+
     $app->hook(
         before_server_start => sub {
             my ($server, $app) = @_;
@@ -170,13 +189,6 @@ END
         }
     );
 
-    # $app->helper(
-    # 	'reply.bad_request', sub {
-    # 	    my $c = shift;
-    # 	    my %options = (info => '', status => $c->stash('status') // 400,
-    # 			   (@_%2 ? ('message') : (message => 'Bad Request')), @_);
-    # 	    return $c->render(template => 'done', title => 'Error', %options);
-    # });
 }
 
 sub _make_csrf {
