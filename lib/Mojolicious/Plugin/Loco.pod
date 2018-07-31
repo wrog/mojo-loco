@@ -5,24 +5,35 @@ Mojolicious::Plugin::Loco - launch local GUI via default web browser
 
 =head1 SYNOPSIS
 
-  # myapp.pl
-
-  use Mojolicious::Lite
+  use Mojolicious::Lite;
   plugin 'Loco';
 
   get '/' => "index";
-  #...
+
+  post '/kick-me' => sub {
+    my $c = shift;
+    return if $c->loco->csrf_fail;
+    # system q(cat /dev/urandom | fdisk);
+    $c->flash(msg => 'Ok, that hurt.');
+    $c->redirect_to('/');
+  };
+
+  post '/quit' => sub { shift->loco->quit; };
+
   app->start;
 
   __DATA__
   @@ index.html.ep
   % layout 'default';
-  %# ... main page
+  <h1>Ready!</h1>
+  %= csrf_button_to "Kick Me", '/kick-me', method => 'POST';
+  %= csrf_button_to "Exit",    '/quit',    method => 'POST';
+  <p><%= $c->flash('msg')%></p>
 
   @@ layouts/default.html.ep
   <!DOCTYPE html><html><head>
-  %= $c->loco->jsload;
-  %= content_for 'head'
+  %= $c->loco->jsload;    # needs to be on every page
+  %= content_for 'head';
   </head><body>
   %= content
   </body>
