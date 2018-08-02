@@ -212,13 +212,12 @@ sub _make_csrf {
 }
 
 sub _reset_timer {
-    state $hb_wait;
     state $timer;
-    $hb_wait = shift if @_;
     Mojo::IOLoop->remove($timer)
       if defined $timer;
+    return unless my $wait = shift;
     $timer = Mojo::IOLoop->timer(
-        $hb_wait,
+        $wait,
         sub {
             print STDERR "stopping...";
             shift->stop;
