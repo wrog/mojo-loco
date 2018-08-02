@@ -82,11 +82,10 @@ sub register {
         before_server_start => sub {
             my ($server, $app) = @_;
             return if $conf{browser_launched}++;
-            my ($url) =
-              map  { $_->host($_->host =~ s![*]!localhost!r); }
-              grep { $_->host =~ m/^(?:[*]|localhost|127[.]([0-9.]+))$/ }
-              map  { Mojo::URL->new($_) } @{ $server->listen };
-            die "Must be listening at a loopback URI" unless $url;
+            my ($url) = map {
+                my $u = Mojo::URL->new($_);
+                $u->host($u->host =~ s![*]!localhost!r);
+            } @{ $server->listen };
 
             # no explicit port means this is coming from UserAgent
             return
