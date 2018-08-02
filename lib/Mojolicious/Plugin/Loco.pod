@@ -43,7 +43,7 @@ Mojolicious::Plugin::Loco - launch local GUI via default web browser
 
 This plugin allows writing low-effort desktop applications using L<Mojolicious> (even cross-platform ones if your code is sufficiently portable).
 
-When run as a daemon listening on an explicit loopback/localhost port, the plugin causes a dedicated window to open in your default internet browser, assuming that we're in a desktop/window-manager context where an internet browser application is installed.  The server will then shut down once the browser window and all descendants thereof are subsequently closed.
+When run as a daemon listening on an explicit port, the plugin invokes an internet browser to connect to it, passing an initial seed value so that requests from that browser can be distinguished.  Client-side javascript then pings the server regularly so that the server can shut down once the browser window and all descendants thereof are subsequently closed.
 
 For applications that will be handling sensitive data or that will be making changes to the filesystem or other local machine state, please see L</"SECURITY CONSIDERATIONS">
 
@@ -53,7 +53,7 @@ This module is currently experimental; the API may change without notice.
 
 =head2 initial_wait
 
-How many seconds to wait on server start for browser window to finish loading.  Defaults to 10.
+How many seconds to wait on server start for browser window to finish loading.  Zero means wait forever.  Default is 10.
 
 =head2 final_wait
 
@@ -63,7 +63,7 @@ Since javascript timer events from backgrounded/hidden tabs/windows are typicall
 
 =head2 entry
 
-URI path for the entry point of your application (i.e., what to display when the brower window opens).  Defaults to C</>.
+URI path for the entry point of your application (i.e., what to display when the brower window opens).  Default is C</>.
 
 =head2 api_path
 
@@ -127,7 +127,7 @@ Final C<begin> block, if provided, will be assumed to be javascript code to furt
 
 =head1 SECURITY CONSIDERATIONS
 
-In a typical desktop application, traffic between the user interface and the application code will be invisible to remote attackers and code running in different processes.  Structuring your application as a Mojolicious server with UI provided by an internet browser using this plugin will, in some cases, expose this traffic and make additional interferences possible.  
+In a typical desktop application, traffic between the user interface and the application code will be invisible to remote attackers and code running in different processes.  Structuring your application as a Mojolicious server with UI provided by an internet browser using this plugin will, in some cases, expose this traffic and make additional interferences possible.
 
 What follows is a (necessarily incomplete) listing of vulnerabilities that can be introduced.
 
@@ -135,19 +135,21 @@ What follows is a (necessarily incomplete) listing of vulnerabilities that can b
 
 =item Listening on Network-accessible Interfaces/Ports
 
-It is stongly recommended that you B<not> use a listening point that is network accessible, i.e., use either a loopback address, UNIX socket (if available), unless you have a reliable firewall to block incoming connection attempts from untrusted sites.  Note that the listening point for Mojolicious servers is the value of C<-l> argument passed to the C<daemon> command, or the value of C<$ENV{MOJO_LISTEN}> if set, or C<localhost:3000> by default, so listening on a network-accessible interface should not happen unless you explicitly call for it.
+Using a listening point that is network accessible means the server will (at least initially) accept incoming connection attempts from untrusted remote sites unless you have a reliable firewall to block these.  If, in addition, L</allow_other_browsers> is also set, then these remote clients will be able to obtain working sessions.
 
-You should B<especially not> use a remotely accessible listing point if you have set L</allow_other_browsers>.
+Note that the listening point for Mojolicious servers is the value of the C<-l> argument passed to the C<daemon> command, the value of C<$ENV{MOJO_LISTEN}> if set, or C<http://*:3000> by default, where C<*> means all available interfaces, so you need to explicitly specify C<localhost> or C<127.0.0.1> or C<[::1]> to prevent the non-local interfaces from being used.
 
 =item Cross-Site Scripting
 
-We assume the use of a modern browser that makes HTML page content and cookies unobservable from scripts running in other domains.  However since the style sheets and script pages served by your application will be arbitrarily accessible cross-domain, you should ensure that they do not reveal any application secrets (e.g., the current C<csrf_token>).
+You should ensure that none of the style-sheets or script pages served by your application reveal any application secrets (e.g., the current C<csrf_token>).
 
-Also, your pages should not reference or include script code from untrusted sources.
+Your pages should not reference or include scripts from untrusted sources.
+
+You should use an up-to-date browser that correctly enforces domain restrictions so that HTML page content and cookies are not observable from scripts running in other domains.
 
 =item Cross-Site Request Forgery
 
-Since any webpage may contain links, buttons, or forms targeting your application, you should use L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> on any requests that change application state, write to the local filesystem, or otherwise make use of privileges beyond those typically available in a browser scripting context.  
+Since any webpage may potentially contain links, buttons, or forms targeting your application, you should use L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> on any requests that change application state, write to the local filesystem, or otherwise make use of privileges beyond those typically available in a browser scripting context.
 
 =item Access From Other Local Processes
 
