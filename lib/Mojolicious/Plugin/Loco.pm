@@ -4,7 +4,7 @@ package Mojolicious::Plugin::Loco;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-use Browser::Open 'open_browser';
+use Browser::Open 'open_browser_cmd';
 use File::ShareDir 'dist_file';
 use Mojo::ByteStream 'b';
 use Mojo::Util qw(hmac_sha1_sum steady_time);
@@ -95,15 +95,35 @@ sub register {
               _make_csrf($app, $$ . steady_time . rand . 'x');
 
             $url->path($init_path)->query(s => $seed);
-            my $e = open_browser($url->to_string);
-            if ($e // 1) {
-                unless ($e) {
-                    die "Cannot find browser to execute";
+
+            my $cmd = $conf{browser} // open_browser_cmd();
+            unless ($cmd) {
+                die "Cannot find browser to execute"
+                  unless defined $cmd;
+                return;
+            }
+            elsif (ref($cmd) eq 'CODE') {
+                $cmd->($url);
+                _reset_timer($conf{initial_wait});
+                return;
+            }
+            if ($^O eq 'MSWin32') {
+                system start => (
+                    $cmd =~ m/^microsoft-edge/
+                    ? ("microsoft-edge:$url")
+                    : (($cmd eq 'start' ? () : ($cmd)), "$url")
+                ) and die "exec '$cmd' failed";
+            }
+            else {
+                my $pid;
+                unless ($pid = fork) {
+                    unless (fork) {
+                        exec $cmd, $url->to_string;
+                        die "exec '$cmd' failed";
+                    }
+                    exit 0;
                 }
-                else {
-                    die "Error executing: "
-                      . Browser::Open::open_browser_cmd . "\n";
-                }
+                waitpid($pid, 0);
             }
             _reset_timer($conf{initial_wait});
         }

@@ -69,6 +69,10 @@ URI path for the entry point of your application (i.e., what to display when the
 
 Path prefix for URIs used by this plugin.  This is where the various endpoints needed by this module live (and is also where the required javascript file(s) are served from).  Defaults to C</hb/>; it can be pretty much anything as long as it's distinct from what the rest of your application uses.  But it would be best to keep it short.
 
+=head2 browser
+
+Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then call it; first argument will be the initial URI.
+
 =head2 allow_other_browsers
 
 If false (default), L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> rejects all C<csrf_token> values other than the one shared between the server and the initial browser launched.  Requests that check for this are then blocked from all other sessions, i.e., those created by other local browsers/processes (or remote processes if the listening point is network accessible).  Setting this true disables this extra protection and L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will behave in the default manner.
