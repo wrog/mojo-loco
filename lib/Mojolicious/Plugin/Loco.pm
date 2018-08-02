@@ -81,8 +81,7 @@ sub register {
     $app->hook(
         before_server_start => sub {
             my ($server, $app) = @_;
-            return if $conf{browser_launched};
-            ++$conf{browser_launched};
+            return if $conf{browser_launched}++;
             my ($url) =
               map  { $_->host($_->host =~ s![*]!localhost!r); }
               grep { $_->host =~ m/^(?:[*]|localhost|127[.]([0-9.]+))$/ }
