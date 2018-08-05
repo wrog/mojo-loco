@@ -160,9 +160,10 @@ sub register {
             my $c = shift;
             state $hcount = 0;
             if ($c->validation->csrf_protect->error('csrf_token')) {
-                print STDERR "bad csrf: "
-                  . $c->validation->input->{csrf_token} . " vs "
-                  . $c->validation->csrf_token . "\n";
+
+                # print STDERR "bad csrf: "
+                # . $c->validation->input->{csrf_token} . " vs "
+                # . $c->validation->csrf_token . "\n";
                 return $c->render(
                     json    => { error => 'unexpected origin' },
                     status  => 400,
@@ -177,14 +178,6 @@ sub register {
             #      if ($hcount > 5);
         }
     );
-
-    # $app->hook(
-    # 	before_dispatch => sub {
-    # 	    my $c = shift;
-    # 	    return unless $conf{csrf};
-    # 	    $c->reply->bad_request(info => 'unexpected origin')
-    # 	      if $c->validation->csrf_protect->error('csrf_token');
-    # 	});
 
     $app->static->extra->{ $js_path =~ s!^/!!r } =
       dist_file(__PACKAGE__ =~ s/::/-/gr, 'heartbeat.js');
