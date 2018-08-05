@@ -143,7 +143,7 @@ sub register {
             $c->validation->csrf_token('')
               if ($conf{seed} || !$c->session->{'loco.id'});
         }
-    ) unless $conf{allow_other_browsers};
+    ) unless $conf{allow_other_sessions};
 
     $app->helper(
         'loco.id' => sub {

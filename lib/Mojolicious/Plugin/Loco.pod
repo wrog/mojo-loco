@@ -73,9 +73,11 @@ Path prefix for URIs used by this plugin.  This is where the various endpoints n
 
 Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then call it; first argument will be the initial URI.
 
-=head2 allow_other_browsers
+=head2 allow_other_sessions
 
-If false (default), L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> rejects all C<csrf_token> values other than the one shared between the server and the initial browser launched.  Requests that check for this are then blocked from all other sessions, i.e., those created by other local browsers/processes (or remote processes if the listening point is network accessible).  Setting this true disables this extra protection and L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will behave in the default manner.
+If false (default), L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will fail on any session other than the one started from the initial browser launched.  Which means that requests that do this check are then blocked from all other sessions, i.e., those created by other local browsers/processes (or remote processes if the listening point is network accessible).
+
+If true, L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will behave in the default manner, and you will need to check L</loco.id> explicitly.
 
 Read L</"SECURITY CONSIDERATIONS"> if you think you might want to set this.
 
@@ -96,7 +98,7 @@ Get or set the session id (for the purposes of this plugin).  By default, this i
 
 =head2 loco->csrf_fail
 
-Performs the C<csrf_token> validation; returns true and renders an HTTP 400 reply if it fails, otherwise returns false.  If L</allow_other_browsers> is false, this also calls L</loco.id_fail> implicitly.
+Performs the C<csrf_token> validation; returns true and renders an HTTP 400 reply if it fails, otherwise returns false.  If L</allow_other_sessions> is false, this also calls L</loco.id_fail> implicitly.
 
   return if $c->loco->csrf_fail;
 
@@ -149,7 +151,7 @@ What follows is a (necessarily incomplete) listing of vulnerabilities that can b
 
 =item Listening on Network-accessible Interfaces/Ports
 
-Using a listening point that is network accessible means the server will (at least initially) accept incoming connection attempts from untrusted remote sites unless you have a reliable firewall to block these.  If, in addition, L</allow_other_browsers> is also set, then these remote clients will be able to obtain working sessions.
+Using a listening point that is network accessible means the server will (at least initially) accept incoming connection attempts from untrusted remote sites unless you have a reliable firewall to block these.  If, in addition, L</allow_other_sessions> is also set, then these remote clients will be able to obtain working sessions.
 
 Note that the listening point for Mojolicious servers is the value of the C<-l> argument passed to the C<daemon> command, the value of C<$ENV{MOJO_LISTEN}> if set, or C<http://*:3000> by default, where C<*> means all available interfaces, so you need to explicitly specify C<localhost> or C<127.0.0.1> or C<[::1]> to prevent the non-local interfaces from being used.
 
@@ -169,7 +171,7 @@ Since any webpage may potentially contain links, buttons, or forms targeting you
 
 With this plugin loaded, C<< $c->validation->csrf_protect >> is restricted to I<only> allowing requests from the session created by the browser invoked by the plugin.
 
-If, however you choose to set L</allow_other_browsers> then your application is potentially vulnerable to requests from other processes (including other browsers) running on the local host, which may then make their own connections to the listening port and obtain usable sessions.  This will be of special concern if, e.g.,
+If, however you choose to L</allow_other_sessions> then it is assumed you have some independent means of authenticating them.  Your application will be receiving requests from other local processes (including other browsers you may have installed).  Special care will be needed if, e.g.,
 
 =over
 
