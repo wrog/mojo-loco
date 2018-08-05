@@ -56,11 +56,20 @@ sub register {
             return $c->render(template => 'done', title => 'Error', %options);
         }
     );
+
     $app->helper(
         'loco.csrf_fail' => sub {
             my $c = shift;
             return $c->loco->reply_400(info => 'unexpected origin')
               if $c->validation->csrf_protect->error('csrf_token');
+        }
+    );
+
+    $app->helper(
+        'loco.id_fail' => sub {
+            my $c = shift;
+            return $c->loco->reply_400(info => 'wrong session')
+              unless $c->loco->id;
         }
     );
 
@@ -132,29 +141,34 @@ sub register {
         before_routes => sub {
             my $c = shift;
             $c->validation->csrf_token('')
-              if ($conf{seed}
-                || (($c->session->{csrf_token} // '') ne ($conf{csrf} // '')));
+              if ($conf{seed} || !$c->session->{'loco.id'});
         }
     ) unless $conf{allow_other_browsers};
+
+    $app->helper(
+        'loco.id' => sub {
+            my $c = shift;
+            undef $c->session->{csrf_token}
+              if @_;
+            return $c->session('loco.id', @_);
+        }
+    );
 
     $app->routes->get(
         $init_path => sub {
             my $c    = shift;
             my $seed = $c->param('s') // '' =~ s/[^0-9a-f]//gr;
 
-            my $u = Mojo::URL->new($conf{entry});
             if (length($seed) >= 40
                 && $seed eq ($conf{seed} // ''))
             {
                 delete $conf{seed};
-
-                # make sure we get a fresh one
-                undef $c->session->{csrf_token};
-                $conf{csrf} = my $csrf = $c->csrf_token;
+                $c->loco->id(1);
             }
-            $c->redirect_to($u);
+            $c->redirect_to($conf{entry});
         }
     );
+
     $app->routes->get(
         $hb_path => sub {
             my $c = shift;
