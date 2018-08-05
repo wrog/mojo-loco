@@ -96,9 +96,11 @@ sub register {
                 $u->host($u->host =~ s![*]!localhost!r);
             } @{ $server->listen };
 
+            my $_test = $conf{_test_browser_launch};
+
             # no explicit port means this is coming from UserAgent
             return
-              unless ($url->port);
+              unless ($url->port || $_test);
 
             $conf{seed} = my $seed =
               _make_csrf($app, $$ . steady_time . rand . 'x');
@@ -113,30 +115,35 @@ sub register {
             }
             elsif (ref($cmd) eq 'CODE') {
                 $cmd->($url);
-                _reset_timer($conf{initial_wait});
-                return;
-            }
-            if ($^O eq 'MSWin32') {
-                system start => (
-                    $cmd =~ m/^microsoft-edge/
-                    ? ("microsoft-edge:$url")
-                    : (($cmd eq 'start' ? () : ($cmd)), "$url")
-                ) and die "exec '$cmd' failed";
             }
             else {
-                my $pid;
-                unless ($pid = fork) {
-                    unless (fork) {
-                        exec $cmd, $url->to_string;
-                        die "exec '$cmd' failed";
-                    }
-                    exit 0;
+                if ($_test) {
+                    $_test->($cmd, $url);
+                    return;
                 }
-                waitpid($pid, 0);
+                if ($^O eq 'MSWin32') {
+                    system start => (
+                        $cmd =~ m/^microsoft-edge/
+                        ? ("microsoft-edge:$url")
+                        : (($cmd eq 'start' ? () : ($cmd)), "$url")
+                    ) and die "exec '$cmd' failed";
+                }
+                else {
+                    my $pid;
+                    unless ($pid = fork) {
+                        unless (fork) {
+                            exec $cmd, $url->to_string;
+                            die "exec '$cmd' failed";
+                        }
+                        exit 0;
+                    }
+                    waitpid($pid, 0);
+                }
             }
             _reset_timer($conf{initial_wait});
         }
     );
+
     $app->hook(
         before_routes => sub {
             my $c = shift;

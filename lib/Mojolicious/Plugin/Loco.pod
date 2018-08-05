@@ -71,7 +71,7 @@ Path prefix for URIs used by this plugin.  This is where the various endpoints n
 
 =head2 browser
 
-Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then call it; first argument will be the initial URI.
+Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then it is assumed that calling it with a URI as first argument will launch something.
 
 =head2 allow_other_sessions
 
