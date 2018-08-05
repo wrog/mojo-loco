@@ -53,7 +53,7 @@ This module is currently experimental; the API may change without notice.
 
 =head2 initial_wait
 
-How many seconds to wait on server start for browser window to finish loading.  Zero means wait forever.  Default is 10.
+How many seconds to wait on server start for browser window to finish loading.  Zero means wait forever.  Defaults to 15.  Settable from L</loco.conf> as long as you do it before server start.
 
 =head2 final_wait
 

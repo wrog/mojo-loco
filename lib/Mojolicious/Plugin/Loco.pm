@@ -13,7 +13,7 @@ sub register {
     my ($self, $app, $o) = @_;
     my %conf = (
         entry        => '/',
-        initial_wait => 10,
+        initial_wait => 15,
         final_wait   => 3,
         api_path     => '/hb/',
         %$o
@@ -24,7 +24,7 @@ sub register {
       map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
     my %_settable = ();
-    ++$_settable{$_} for qw(final_wait);
+    ++$_settable{$_} for qw(initial_wait final_wait);
     $app->helper(
         'loco.conf' => sub {
             my $c = shift;
