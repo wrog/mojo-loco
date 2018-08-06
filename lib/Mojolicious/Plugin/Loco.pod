@@ -49,9 +49,9 @@ Save to C<myapp.pl>, and then
 
 This plugin allows writing low-effort desktop applications using L<Mojolicious> (even cross-platform ones if your code is sufficiently portable).
 
-When run as a daemon listening on an explicit port, the plugin invokes an internet browser to connect to it, passing an initial seed value so that requests from that browser can be distinguished.  Client-side javascript then pings the server regularly so that the server can shut down once the browser window and all descendants thereof are subsequently closed.
+When run as a L<daemon|Mojolicious::Command::daemon> listening on an explicit port, the plugin launches an internet browser, passing an initial URL and seed so that subsequent requests from that browser can be distinguished.  Client-side javascript then pings the server regularly until either the server shuts down or the various browser windows are closed.
 
-For applications that will be handling sensitive data or that will be making changes to the filesystem or other local machine state, please see L</"SECURITY CONSIDERATIONS">
+For applications making changes to the filesystem / local machine state, or handling sensitive data or anything else that matters, please see L</"SECURITY CONSIDERATIONS">
 
 This module is currently experimental; the API may change without notice.
 
@@ -59,31 +59,31 @@ This module is currently experimental; the API may change without notice.
 
 =head2 initial_wait
 
-How many seconds to wait on server start for browser window to finish loading.  Zero means wait forever.  Defaults to 15.  Settable from L</loco.conf> as long as you do it before server start.
+How many seconds for the server to wait for the initial browser window to finish loading before giving up and shutting down.  Zero means wait forever.  Default is 15.  Settable from L</loco-E<gt>conf> as long as you do it before server start.
 
 =head2 final_wait
 
-How many seconds to wait after browser window ceases communicating before terminating (we do not rely on C<window.unload>).  Defaults to 3.  Settable from L</loco.conf>.
+How many seconds for the server to wait after the last browser window ceases communicating before shutting down (we do not rely on C<window.unload>).  Default is 3.  Settable from L</loco-E<gt>conf>.
 
-Since javascript timer events from backgrounded/hidden tabs/windows are typically throttled, reducing this below 2 will most likely make the application prematurely terminate whenever the window is hidden or minimized.
+Since javascript timer events from backgrounded/hidden tabs/windows are typically throttled in current browsers, reducing this below 2 will most likely make the application terminate prematurely if all windows are hidden or minimized.
 
 =head2 entry
 
-URI path for the entry point of your application (i.e., what to display when the brower window opens).  Default is C</>.
+URI path for the entry point of your application (i.e., what to display in the initial brower window).  Default is C</>.
 
 =head2 api_path
 
-Path prefix for URIs used by this plugin.  This is where the various endpoints needed by this module live (and is also where the required javascript file(s) are served from).  Defaults to C</hb/>; it can be pretty much anything as long as it's distinct from what the rest of your application uses.  But it would be best to keep it short.
+URI path prefix reserved for use by this plugin.  Endpoints needed by this module live here; this is also where the required javascript file(s) are served from.  Default is C</hb/>; it can be pretty much anything as long as it's distinct from what the rest of your application uses.
 
 =head2 browser
 
-Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then it is assumed that calling it with a URI as first argument will launch something.
+Which browser (executable file) to run.  If false (C<0> or C<''>) then no browser will be invoked.  If a subroutine reference, then it is assumed that calling it with a URI as first argument will launch something useful.  Default is for L<Browser::Open> to launch whatever the default browser is for your system.
 
 =head2 allow_other_sessions
 
-If false (default), L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will fail on any session other than the one started from the initial browser launched.  Which means that requests that do this check are then blocked from all other sessions, i.e., those created by other local browsers/processes (or remote processes if the listening point is network accessible).
+If false (default), L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> fails on any session other than the one started from the initial browser launched.  Requests doing this check are then blocked from all other sessions.
 
-If true, L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will behave in the default manner, and you will need to check L</loco.id> explicitly.
+If true, L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> will behave in the default manner, and you will need to check L</loco-E<gt>id> explicitly.
 
 Read L</"SECURITY CONSIDERATIONS"> if you think you might want to set this.
 
