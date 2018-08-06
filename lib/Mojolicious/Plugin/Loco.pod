@@ -14,12 +14,14 @@ Mojolicious::Plugin::Loco - launch local GUI via default web browser
     my $c = shift;
     return if $c->loco->csrf_fail;
     # system q(cat /dev/urandom | fdisk);
-    $c->flash(msg => 'Ok, that hurt.');
+    my $bcount = ++$c->session->{bruises};
+    $c->flash(msg => "Ok, that hurt. ($bcount)");
     $c->redirect_to('/');
   };
 
   post '/quit' => sub { shift->loco->quit; };
 
+  app->secrets(['I am the very model of a modern major general'.rand()]);
   app->start;
 
   __DATA__
@@ -38,6 +40,10 @@ Mojolicious::Plugin::Loco - launch local GUI via default web browser
   %= content
   </body>
   </html>
+
+Save to C<myapp.pl>, and then
+
+  perl myapp.pl daemon
 
 =head1 DESCRIPTION
 
