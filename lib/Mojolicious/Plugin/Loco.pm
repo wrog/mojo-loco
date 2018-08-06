@@ -1,6 +1,6 @@
 package Mojolicious::Plugin::Loco;
 
-# ABSTRACT: launch local GUI via default web browser
+# ABSTRACT: launch a web browser; easy local GUI
 
 use Mojo::Base 'Mojolicious::Plugin';
 
