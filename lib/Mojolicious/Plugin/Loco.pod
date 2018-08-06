@@ -151,7 +151,7 @@ Final C<begin> block, if provided, will be assumed to be javascript code to furt
 
 In a typical desktop application, traffic between the user interface and the application code will be invisible to remote attackers and code running in different processes.  Structuring your application as a Mojolicious server with UI provided by an internet browser using this plugin will, in some cases, expose this traffic and make additional interferences possible.
 
-What follows is a (necessarily incomplete) listing of vulnerabilities that can be introduced.
+What follows is a (necessarily incomplete) listing of vulnerabilities you may need to address.
 
 =over
 
@@ -159,23 +159,23 @@ What follows is a (necessarily incomplete) listing of vulnerabilities that can b
 
 Using a listening point that is network accessible means the server will (at least initially) accept incoming connection attempts from untrusted remote sites unless you have a reliable firewall to block these.  If, in addition, L</allow_other_sessions> is also set, then these remote clients will be able to obtain working sessions.
 
-Note that the listening point for Mojolicious servers is the value of the C<-l> argument passed to the C<daemon> command, the value of C<$ENV{MOJO_LISTEN}> if set, or C<http://*:3000> by default, where C<*> means all available interfaces, so you need to explicitly specify C<localhost> or C<127.0.0.1> or C<[::1]> to prevent the non-local interfaces from being used.
+By default, Mojolicious servers listen at C<http://*:3000>, where C<*> means all available interfaces, so you need to change this (C<localhost>, C<127.0.0.1>, or C<[::1]>) using either C<$ENV{MOJO_LISTEN}> or the C<-l> command line argument that the L<daemon|Mojolicious::Command::daemon> allows.
 
 =item Cross-Site Scripting
 
-You should ensure that none of the style-sheets or script pages served by your application reveal any application secrets (e.g., the current C<csrf_token>).
+Style-sheets or script pages served by your application should not reveal application secrets (e.g., the current C<csrf_token>).
 
-Your pages should not reference or include scripts from untrusted sources.
+Pages/templates should not incorporate scripts from untrusted sources.
 
-You should use an up-to-date browser that correctly enforces domain restrictions so that HTML page content and cookies are not observable from scripts running in other domains.
+Use a browser that enforces domain restrictions so that HTML page content and cookies are not observable from scripts running in other domains (most current browsers do this correctly).
 
 =item Cross-Site Request Forgery
 
-Since any webpage may potentially contain links, buttons, or forms targeting your application, you should use L<$c-E<gt>validation-E<gt>csrf_protect|Mojolicious::Validator::Validation#csrf_protect> on any requests that change application state, write to the local filesystem, or otherwise make use of privileges beyond those typically available in a browser scripting context.
+Since any webpage may potentially contain links, buttons, or forms targeting your application, you should use and check C<csrf_token> on any requests that change application state, write to the local filesystem, or otherwise make use of privileges beyond those typically available in a browser scripting context.
 
 =item Access From Other Local Processes
 
-With this plugin loaded, C<< $c->validation->csrf_protect >> is restricted to I<only> allowing requests from the session created by the browser invoked by the plugin.
+With this plugin loaded, C<< $c->validation->csrf_protect >> will fail on sessions other from the one created by the browser launched.
 
 If, however you choose to L</allow_other_sessions> then it is assumed you have some independent means of authenticating them.  Your application will be receiving requests from other local processes (including other browsers you may have installed).  Special care will be needed if, e.g.,
 
@@ -183,7 +183,7 @@ If, however you choose to L</allow_other_sessions> then it is assumed you have s
 
 =item *
 
-You are concurrently running instances of alternative or out-dated browsers visiting untrusted sites able to exploit cross-site scripting vulnerabiliities to obtain the contents of your application's HTML pages or cookie values.
+You are concurrently running instances of alternative/out-dated browsers with cross-site scripting vulnerabiliities visiting untrusted sites that can exploit them.
 
 =item *
 
