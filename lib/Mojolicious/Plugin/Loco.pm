@@ -60,6 +60,7 @@ sub register {
     $app->helper(
         'loco.csrf_fail' => sub {
             my $c = shift;
+            return 1 if '400' eq ($c->res->code // '');
             return $c->loco->reply_400(info => 'unexpected origin')
               if $c->validation->csrf_protect->error('csrf_token');
         }
@@ -68,6 +69,7 @@ sub register {
     $app->helper(
         'loco.id_fail' => sub {
             my $c = shift;
+            return 1 if '400' eq ($c->res->code // '');
             return $c->loco->reply_400(info => 'wrong session')
               unless $c->loco->id;
         }
