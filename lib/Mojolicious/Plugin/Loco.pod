@@ -91,7 +91,7 @@ Read L</"SECURITY CONSIDERATIONS"> if you think you might want to set this.
 
 =head2 loco->conf
 
-Get or set plugin configuration values.  Only some values are actually settable.
+Get or set plugin configuration L<options|/OPTIONS>.  Note that most values are only meaningful prior to server start so changing them thereafter won't affect anything.
 
   $c->loco->conf                       # -> full hash of settings
   $c->loco->conf('final_wait')         # -> 3
@@ -100,23 +100,23 @@ Get or set plugin configuration values.  Only some values are actually settable.
 
 =head2 loco->id
 
-Get or set the session id (for the purposes of this plugin).  By default, this is set to 1 for the launched browser's session and left undefined for all others.
+Get or set the session id (for the purposes of this plugin).  By default, this is 1 for the launched browser's session and undefined for all others.
 
 =head2 loco->csrf_fail
 
-Performs the C<csrf_token> validation; returns true and renders an HTTP 400 reply if it fails, otherwise returns false.  If L</allow_other_sessions> is false, this also calls L</loco.id_fail> implicitly.
+Renders an HTTP 400 reply and returns true unless C<csrf_token> validation succeeds.  If L</allow_other_sessions> is false, this implicitly also checks L</loco-E<gt>id>.
 
   return if $c->loco->csrf_fail;
 
 =head2 loco->id_fail
 
-Returns true if there is a nonzero session id, otherwise renders an HTTP 400 reply.
+Renders an HTTP 400 reply and returns true unless there is a nonzero session id.
 
   return if $c->loco->id_fail;
 
 =head2 loco->quit
 
-Stop the server and render a final page if necessary.  This includes the C<csrf_token> check.
+Stop the server and render a final page if necessary.  This implicitly calls L</loco-E<gt>csrf_fail> and checks L</loco-E<gt>id>.
 
 =head2 loco->jsload
 
