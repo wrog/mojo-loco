@@ -93,14 +93,15 @@ Read L</"SECURITY CONSIDERATIONS"> if you think you might want to set this.
 
 =head1 HELPERS
 
-=head2 loco->conf
+=head2 loco->config
 
 Get or set plugin configuration L<options|/OPTIONS>.  Note that most values are only meaningful prior to server start so changing them thereafter won't affect anything.
 
-  $c->loco->conf                       # -> full hash of settings
-  $c->loco->conf('final_wait')         # -> 3
-  $c->loco->conf(final_wait => 200)    # -> $c, sets final_wait
-  $c->loco->conf({final_wait => 200})  # -> same
+  $c->loco->config                         # -> full hash of settings
+  $c->loco->config('final_wait')           # -> 3
+  $c->loco->config(final_wait => 200)      # -> $c, sets final_wait
+  $c->loco->config({final_wait => 200})    # -> same
+  app->config('loco')->{final_wait} = 200  # same effect if config_key not changed
 
 =head2 loco->id
 

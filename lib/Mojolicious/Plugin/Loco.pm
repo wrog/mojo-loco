@@ -35,7 +35,7 @@ sub register {
       map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
     $app->helper(
-        'loco.conf' => sub {
+        'loco.config' => sub {
             my $c = shift;
 
             # Hash
