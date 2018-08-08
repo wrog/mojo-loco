@@ -34,8 +34,6 @@ sub register {
     my ($init_path, $hb_path, $js_path) =
       map { $api->merge($_)->to_string } qw(init hb heartbeat.js);
 
-    my %_settable = ();
-    ++$_settable{$_} for qw(initial_wait final_wait);
     $app->helper(
         'loco.conf' => sub {
             my $c = shift;
@@ -48,9 +46,6 @@ sub register {
 
             # Set
             my $values = ref $_[0] ? $_[0] : {@_};
-            for (keys %$values) {
-                delete $values->{$_} unless $_settable{$_};
-            }
             @{$conf}{ keys %$values } = values %$values;
             return $c;
         }

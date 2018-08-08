@@ -63,11 +63,11 @@ Key of the configuration hash (C<app-E<gt>config>) containing plugin option valu
 
 =head2 initial_wait
 
-How many seconds for the server to wait for the initial browser window to finish loading before giving up and shutting down.  Zero means wait forever.  Default is 15.  Settable from L</loco-E<gt>conf> as long as you do it before server start.
+How many seconds for the server to wait for the initial browser window to finish loading before giving up and shutting down.  Zero means wait forever.  Default is 15.
 
 =head2 final_wait
 
-How many seconds for the server to wait after the last browser window ceases communicating before shutting down (we do not rely on C<window.unload>).  Default is 3.  Settable from L</loco-E<gt>conf>.
+How many seconds for the server to wait after the last browser window ceases communicating before shutting down (we do not rely on C<window.unload>).  Default is 3.
 
 Since javascript timer events from backgrounded/hidden tabs/windows are typically throttled in current browsers, reducing this below 2 will most likely make the application terminate prematurely if all windows are hidden or minimized.
 
