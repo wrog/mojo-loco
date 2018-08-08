@@ -57,6 +57,10 @@ This module is currently experimental; the API may change without notice.
 
 =head1 OPTIONS
 
+=head2 config_key
+
+Key of the configuration hash (C<app-E<gt>config>) containing plugin option values.  Default is C<'loco'>.  If false, then C<app-E<gt>config> is not consulted.
+
 =head2 initial_wait
 
 How many seconds for the server to wait for the initial browser window to finish loading before giving up and shutting down.  Zero means wait forever.  Default is 15.  Settable from L</loco-E<gt>conf> as long as you do it before server start.
@@ -204,9 +208,9 @@ L<Mojolicious::Plugin> and implements the following new ones.
 
 =head2 register
 
-  $plugin->register(Mojolicious->new, entry => '/');
+  $plugin->register($app, entry => '/', initial_wait => 15);
 
-Register plugin in L<Mojolicious> application.
+Register plugin in L<Mojolicious> application.  Key-value pairs give default L<option|/OPTIONS> values for this application.  Everything other than L</config_key> may be overridden in the L<application configuration|Mojolicious#config>.
 
 =head1 SEE ALSO
 

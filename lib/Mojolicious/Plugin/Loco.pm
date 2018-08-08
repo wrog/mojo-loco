@@ -12,12 +12,22 @@ use Mojo::Util qw(hmac_sha1_sum steady_time);
 sub register {
     my ($self, $app, $o) = @_;
     my $conf = {
+        config_key   => 'loco',
         entry        => '/',
         initial_wait => 15,
         final_wait   => 3,
         api_path     => '/hb/',
         %$o,
     };
+    if (my $loco = $conf->{config_key}) {
+        unless (my $ac = $app->config($loco)) {
+            $app->config($loco, $conf);
+        }
+        else {
+            %$ac = (%$conf, %$ac);
+            $conf = $ac;
+        }
+    }
 
     my $api =
       Mojo::Path->new($conf->{api_path})->leading_slash(1)->trailing_slash(1);
