@@ -1,0 +1,3 @@
+=head1 Contributing
+
+Everything is on GitHub (surprise).  Just L<raise an issue|https://github.com/wrog/mojo-loco/issues> or open a L<pull request|https://github.com/wrog/mojo-loco/pulls> if you think you know the right way to fix it.  We'll go from there.
