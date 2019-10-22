@@ -138,7 +138,7 @@ Or you can be more elaborate
         })
   % end );
 
-Options for L</jsload> include
+Options for L</loco-E<gt>jsload> include
 
 =head3 jquery
 
