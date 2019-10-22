@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.007     Oct 22 2019
+        * remove Pod tests from dist.ini
+        * fix metacpan links
+
 0.006     Aug 10 2018
         * loco->conf renamed to loco->config
         * Application config can override option settings
