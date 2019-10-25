@@ -1,8 +1,10 @@
 {{$NEXT}}
 
+0.008     Oct 25 2019
+        * fix metacpan issues, remove CONTRIBUTING.pod
+
 0.007     Oct 22 2019
-        * remove Pod tests from dist.ini
-        * fix metacpan links
+        * remove author dependencies from Makefile.PL
 
 0.006     Aug 10 2018
         * loco->conf renamed to loco->config
